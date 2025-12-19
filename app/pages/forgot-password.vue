@@ -18,7 +18,12 @@ const sendReset = async () => {
   error.value = null
   message.value = null
 
-  const { error: err } = await supabase.auth.resetPasswordForEmail(email.value)
+  const { error: err } = await supabase.auth.resetPasswordForEmail(
+    email.value,
+    {
+      redirectTo: `${window.location.origin}/reset-password`
+    }
+  )
 
   loading.value = false
 
@@ -27,7 +32,7 @@ const sendReset = async () => {
     return
   }
 
-  message.value = 'Password reset link sent to your email.'
+  message.value = 'Password reset link sent. Please check your email.'
 }
 </script>
 
@@ -43,9 +48,10 @@ const sendReset = async () => {
       rounded="lg"
       density="comfortable"
       class="mb-4"
+      :disabled="!!message"
     />
 
-    <!-- ERROR -->
+    <!-- ERROR ALERT -->
     <v-alert
       v-if="error"
       type="error"
@@ -56,7 +62,7 @@ const sendReset = async () => {
       {{ error }}
     </v-alert>
 
-    <!-- SUCCESS -->
+    <!-- SUCCESS ALERT -->
     <v-alert
       v-if="message"
       type="success"
@@ -74,6 +80,7 @@ const sendReset = async () => {
       size="large"
       block
       :loading="loading"
+      :disabled="!!message"
       class="mb-3"
       @click="sendReset"
     >

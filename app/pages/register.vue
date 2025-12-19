@@ -1,47 +1,3 @@
-<script setup lang="ts">
-import { definePageMeta } from '#imports'
-
-definePageMeta({
-  layout: 'auth',
-  middleware: 'guest'
-})
-
-const supabase = useSupabase()
-
-const firstName = ref('')
-const lastName = ref('')
-const email = ref('')
-const password = ref('')
-const error = ref<string | null>(null)
-const loading = ref(false)
-
-const register = async () => {
-  loading.value = true
-  error.value = null
-
-  const { data, error: signUpError } = await supabase.auth.signUp({
-    email: email.value,
-    password: password.value
-  })
-
-  if (signUpError || !data.user) {
-    error.value = signUpError?.message || 'Registration failed'
-    loading.value = false
-    return
-  }
-
-  await supabase.from('faculty').insert({
-    id: data.user.id,
-    email: email.value,
-    first_name: firstName.value,
-    last_name: lastName.value
-  })
-
-  loading.value = false
-  navigateTo('/login')
-}
-</script>
-
 <template>
   <v-card-text>
     <!-- NAME FIELDS -->
@@ -93,7 +49,7 @@ const register = async () => {
       class="mb-2"
     />
 
-    <!-- ERROR -->
+    <!-- ERROR ALERT -->
     <v-alert
       v-if="error"
       type="error"
@@ -104,6 +60,17 @@ const register = async () => {
       {{ error }}
     </v-alert>
 
+    <!-- SUCCESS ALERT -->
+    <v-alert
+      v-if="success"
+      type="success"
+      variant="tonal"
+      density="comfortable"
+      class="mb-4"
+    >
+      {{ success }}
+    </v-alert>
+
     <!-- PRIMARY ACTION -->
     <v-btn
       color="primary"
@@ -111,6 +78,7 @@ const register = async () => {
       size="large"
       block
       :loading="loading"
+      :disabled="!!success"
       class="mb-3"
       @click="register"
     >
@@ -130,3 +98,62 @@ const register = async () => {
     </v-btn>
   </v-card-text>
 </template>
+
+
+<script setup lang="ts">
+import { definePageMeta } from '#imports'
+
+definePageMeta({
+  layout: 'auth',
+  middleware: 'guest'
+})
+
+const supabase = useSupabase()
+
+const firstName = ref('')
+const lastName = ref('')
+const email = ref('')
+const password = ref('')
+
+const error = ref<string | null>(null)
+const success = ref<string | null>(null)
+const loading = ref(false)
+
+const register = async () => {
+  loading.value = true
+  error.value = null
+  success.value = null
+
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email: email.value,
+    password: password.value
+  })
+
+  if (signUpError || !data.user) {
+    error.value = signUpError?.message || 'Registration failed'
+    loading.value = false
+    return
+  }
+
+  const { error: insertError } = await supabase.from('faculties').insert({
+    id: data.user.id,
+    email: email.value,
+    first_name: firstName.value,
+    last_name: lastName.value
+  })
+
+  if (insertError) {
+    error.value = insertError.message
+    loading.value = false
+    return
+  }
+
+  success.value = 'Account created successfully! Check your email for confirmation.'
+  loading.value = false
+
+  // Auto redirect after short delay
+  setTimeout(() => {
+    navigateTo('/login')
+  }, 2000)
+}
+</script>
