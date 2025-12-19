@@ -1,5 +1,23 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
-  devtools: { enabled: true }
+  devtools: { enabled: true },
+
+  modules: ['@pinia/nuxt'],
+
+  css: ['vuetify/styles'],
+
+  build: {
+    transpile: ['vuetify']
+  },
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: '' as string,
+      supabaseAnonKey: '' as string
+    }
+  },
+
+  typescript: {
+    strict: true,
+    typeCheck: false
+  }
 })
